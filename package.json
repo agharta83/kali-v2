@@ -16,17 +16,15 @@
     "url": "https://github.com/agharta83/kali-v2/issues"
   },
   "type": "module",
+  "main": "dist/main/index.js",
   "engines": {
     "node": ">=20.0.0 <22.0.0",
     "pnpm": ">=10.0.0"
   },
   "packageManager": "pnpm@10.28.2",
   "scripts": {
-    "dev": "echo 'TODO: configured in STORY-002' && exit 1",
-    "build": "echo 'TODO: configured in STORY-002' && exit 1",
-    "build:main": "tsc -p tsconfig.main.json",
-    "build:renderer": "echo 'TODO: configured in STORY-002' && exit 1",
-    "build:preload": "tsc -p tsconfig.preload.json",
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
     "test": "echo 'TODO: configured in STORY-009' && exit 1",
     "test:watch": "echo 'TODO: configured in STORY-009' && exit 1",
     "typecheck": "tsc --build --force",
@@ -39,6 +37,17 @@
     "clean": "rm -rf dist build out electron-dist *.tsbuildinfo coverage"
   },
   "devDependencies": {
-    "typescript": "^6.0.3"
+    "@electron/fuses": "^2.1.1",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "electron": "^30.5.1",
+    "electron-vite": "^5.0.0",
+    "typescript": "^6.0.3",
+    "vite": "^5.4.21"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }
