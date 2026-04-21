@@ -1,0 +1,44 @@
+{
+  "name": "kali-v2",
+  "version": "0.0.0",
+  "description": "Environnement de développement agentique desktop pour développeurs — orchestration d'agents IA, review MR/PR (GitLab + GitHub) assistée, Kanban, skills Claude, MCP servers.",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Audrey"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agharta83/kali-v2.git"
+  },
+  "homepage": "https://github.com/agharta83/kali-v2#readme",
+  "bugs": {
+    "url": "https://github.com/agharta83/kali-v2/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0 <22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "dev": "echo 'TODO: configured in STORY-002' && exit 1",
+    "build": "echo 'TODO: configured in STORY-002' && exit 1",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "echo 'TODO: configured in STORY-002' && exit 1",
+    "build:preload": "tsc -p tsconfig.preload.json",
+    "test": "echo 'TODO: configured in STORY-009' && exit 1",
+    "test:watch": "echo 'TODO: configured in STORY-009' && exit 1",
+    "typecheck": "tsc --build --force",
+    "lint": "echo 'TODO: configured in STORY-010' && exit 1",
+    "lint:fix": "echo 'TODO: configured in STORY-010' && exit 1",
+    "format": "echo 'TODO: configured in STORY-010' && exit 1",
+    "format:check": "echo 'TODO: configured in STORY-010' && exit 1",
+    "i18n:check": "echo 'TODO: configured in STORY-007' && exit 1",
+    "package:linux": "echo 'TODO: configured in STORY-011' && exit 1",
+    "clean": "rm -rf dist build out electron-dist *.tsbuildinfo coverage"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

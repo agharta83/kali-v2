@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+electron-dist/
+*.tsbuildinfo
+.vite/
+
+# Test & coverage
+coverage/
+.nyc_output/
+
+# Runtime & logs
+*.log
+logs/
+*.pid
+*.seed
+
+# Local data / SQLite
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE (keep extensions.json, launch.json etc., exclude user settings)
+.vscode/settings.json
+.vscode/.BROWSE.VC.db*
+.idea/
+*.iml
+
+# Sentry
+.sentryclirc
+
+# Temp
+*.tmp
+*.bak
+~*
+
+# Internal development docs (kept local, not versioned)
+docs/
