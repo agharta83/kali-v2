@@ -47,7 +47,7 @@ const kaliAPI: KaliAPI = {
        * // => 'dark' (mock data)
        */
       get: (key: string): Promise<unknown> => {
-        return ipcRenderer.invoke('rpc:settings.get', key);
+        return ipcRenderer.invoke('rpc:settings.get', { key });
       },
 
       /**
