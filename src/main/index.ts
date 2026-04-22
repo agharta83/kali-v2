@@ -3,6 +3,7 @@
 
 import { app, BrowserWindow, session } from 'electron';
 import { join } from 'path';
+import { createRPCRouter } from './ipc/router';
 
 /**
  * Creates the main application window with security-first configuration.
@@ -90,6 +91,10 @@ app.whenReady().then(() => {
       }
     });
   });
+
+  // Initialize IPC router for main ↔ renderer communication
+  // Must be called before window creation to ensure handlers are ready
+  createRPCRouter();
 
   createWindow();
 
