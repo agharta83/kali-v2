@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Electron preload bridge — exposes typed RPC to the renderer.
-// TODO: STORY-003 — IPC router typé + preload bridge.
+// Electron preload entry point — exposes typed RPC API to the renderer.
+// This script runs in a sandboxed context with access to both Electron APIs
+// and the renderer DOM, allowing secure communication via contextBridge.
 
-import { contextBridge } from 'electron';
-
-// Minimal preload setup for sandbox mode.
-// Exposes a placeholder API to the renderer context.
-// Will be expanded in STORY-003 with typed IPC router.
-contextBridge.exposeInMainWorld('electron', {
-  // Placeholder - actual API will be implemented in STORY-003
-});
+// Import and initialize the IPC bridge
+import './bridge';
