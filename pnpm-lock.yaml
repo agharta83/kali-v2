@@ -8,12 +8,15 @@ importers:
 
   .:
     dependencies:
+      better-sqlite3:
+        specifier: npm:better-sqlite3-multiple-ciphers@^12.9.0
+        version: better-sqlite3-multiple-ciphers@12.9.0
       better-sqlite3-multiple-ciphers:
         specifier: ^12.9.0
         version: 12.9.0
       drizzle-orm:
         specifier: ^0.45.2
-        version: 0.45.2(@types/better-sqlite3@7.6.13)
+        version: 0.45.2(@types/better-sqlite3@7.6.13)(better-sqlite3-multiple-ciphers@12.9.0)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -2573,9 +2576,10 @@ snapshots:
       esbuild: 0.25.12
       tsx: 4.21.0
 
-  drizzle-orm@0.45.2(@types/better-sqlite3@7.6.13):
+  drizzle-orm@0.45.2(@types/better-sqlite3@7.6.13)(better-sqlite3-multiple-ciphers@12.9.0):
     optionalDependencies:
       '@types/better-sqlite3': 7.6.13
+      better-sqlite3: better-sqlite3-multiple-ciphers@12.9.0
 
   electron-to-chromium@1.5.341: {}
 
