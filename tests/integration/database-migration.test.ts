@@ -11,18 +11,13 @@ import * as path from 'path';
 import * as os from 'os';
 import { eq } from 'drizzle-orm';
 
-// Mock electron's app module to use temporary directory for tests
 vi.mock('electron', () => ({
   app: {
-    getPath: vi.fn((name: string) => {
-      if (name === 'userData') {
-        // Use system temp directory for test databases
-        return path.join(os.tmpdir(), 'kali-v2-test-' + Date.now());
-      }
-      return '';
-    }),
+    getPath: vi.fn(),
   },
 }));
+
+import { app } from 'electron';
 
 describe('Database Integration Tests', () => {
   let testDbPath: string;
@@ -30,13 +25,11 @@ describe('Database Integration Tests', () => {
   let encryptionKey: string;
 
   beforeEach(() => {
-    // Generate a unique encryption key for each test
     encryptionKey = randomBytes(32).toString('hex');
 
-    // Get the mocked userData path
-    const { app } = require('electron');
-    testUserDataPath = app.getPath('userData');
+    testUserDataPath = path.join(os.tmpdir(), 'kali-v2-test-' + Date.now());
     testDbPath = path.join(testUserDataPath, 'kali.db');
+    vi.mocked(app.getPath).mockReturnValue(testUserDataPath);
 
     // Ensure test directory exists
     if (!fs.existsSync(testUserDataPath)) {

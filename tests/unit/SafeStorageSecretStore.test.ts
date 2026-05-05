@@ -201,10 +201,10 @@ describe('SafeStorageSecretStore', () => {
       const result = await store.getSecret('test-key');
 
       expect(fs.existsSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'test-key.enc')
+        expectedPath(mockStorePath, 'test-key')
       );
       expect(fs.readFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'test-key.enc')
+        expectedPath(mockStorePath, 'test-key')
       );
       expect(safeStorage.decryptString).toHaveBeenCalledWith(encryptedBuffer);
       expect(result).toBe('decrypted-value');
@@ -243,7 +243,7 @@ describe('SafeStorageSecretStore', () => {
       await store.getSecret('kali:db:master');
 
       expect(fs.existsSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'kali_db_master.enc')
+        expectedPath(mockStorePath, 'kali:db:master')
       );
     });
 
@@ -298,10 +298,10 @@ describe('SafeStorageSecretStore', () => {
       await store.deleteSecret('test-key');
 
       expect(fs.existsSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'test-key.enc')
+        expectedPath(mockStorePath, 'test-key')
       );
       expect(fs.unlinkSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'test-key.enc')
+        expectedPath(mockStorePath, 'test-key')
       );
     });
 
@@ -320,10 +320,10 @@ describe('SafeStorageSecretStore', () => {
       await store.deleteSecret('kali:db:master');
 
       expect(fs.existsSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'kali_db_master.enc')
+        expectedPath(mockStorePath, 'kali:db:master')
       );
       expect(fs.unlinkSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'kali_db_master.enc')
+        expectedPath(mockStorePath, 'kali:db:master')
       );
     });
 
@@ -352,7 +352,7 @@ describe('SafeStorageSecretStore', () => {
       const result = await store.hasSecret('test-key');
 
       expect(fs.existsSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'test-key.enc')
+        expectedPath(mockStorePath, 'test-key')
       );
       expect(result).toBe(true);
     });
@@ -374,7 +374,7 @@ describe('SafeStorageSecretStore', () => {
       await store.hasSecret('kali:db:master');
 
       expect(fs.existsSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'kali_db_master.enc')
+        expectedPath(mockStorePath, 'kali:db:master')
       );
     });
 
