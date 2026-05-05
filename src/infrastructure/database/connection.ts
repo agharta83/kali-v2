@@ -104,8 +104,7 @@ export interface DatabaseConnection {
  * ```
  */
 export function initializeDatabase(encryptionKey: string): DatabaseConnection {
-  // Validate encryption key format
-  if (!encryptionKey || encryptionKey.length !== 64) {
+  if (!/^[0-9a-fA-F]{64}$/.test(encryptionKey)) {
     throw new Error(
       'Invalid encryption key: must be 64-character hex string (32 bytes)'
     );

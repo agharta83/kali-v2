@@ -95,6 +95,13 @@ describe('Database Integration Tests', () => {
       );
     });
 
+    it('should throw error with non-hex 64-character key', () => {
+      const nonHexKey = 'g'.repeat(64);
+      expect(() => initializeDatabase(nonHexKey)).toThrow(
+        'Invalid encryption key: must be 64-character hex string (32 bytes)'
+      );
+    });
+
     it('should return both db and sqlite instances', () => {
       const connection = initializeDatabase(encryptionKey);
 
