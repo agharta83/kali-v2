@@ -8,5 +8,5 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["src/main/**/*", "src/shared/**/*"]
+  "include": ["src/main/**/*", "src/shared/**/*", "src/infrastructure/**/*", "src/domain/**/*"]
 }
