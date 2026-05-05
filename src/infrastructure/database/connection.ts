@@ -129,6 +129,7 @@ export function initializeDatabase(encryptionKey: string): DatabaseConnection {
     // Provides the master key for database encryption/decryption
     // CRITICAL: This must be the second pragma, immediately after cipher
     // Without this, any query will fail or potentially corrupt the database
+    // Safe: encryptionKey is validated as /^[0-9a-fA-F]{64}$/ above; PRAGMA doesn't support bind parameters.
     sqlite.pragma(`key='${encryptionKey}'`);
 
     // 4. Verify encryption is working
