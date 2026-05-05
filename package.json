@@ -25,8 +25,8 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "test": "echo 'TODO: configured in STORY-009' && exit 1",
-    "test:watch": "echo 'TODO: configured in STORY-009' && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --build --force",
     "lint": "echo 'TODO: configured in STORY-010' && exit 1",
     "lint:fix": "echo 'TODO: configured in STORY-010' && exit 1",
@@ -38,16 +38,23 @@
   },
   "devDependencies": {
     "@electron/fuses": "^2.1.1",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.6.0",
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/ui": "^4.1.5",
+    "drizzle-kit": "^0.31.10",
     "electron": "^30.5.1",
     "electron-vite": "^5.0.0",
     "typescript": "^6.0.3",
-    "vite": "^5.4.21"
+    "vite": "^6.0.0",
+    "vitest": "^4.1.5"
   },
   "dependencies": {
+    "better-sqlite3": "npm:better-sqlite3-multiple-ciphers@^12.9.0",
+    "better-sqlite3-multiple-ciphers": "^12.9.0",
+    "drizzle-orm": "^0.45.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^4.3.6"

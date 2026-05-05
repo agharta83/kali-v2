@@ -3,7 +3,64 @@
 
 import { app, BrowserWindow, session } from 'electron';
 import { join } from 'path';
+import { randomBytes } from 'crypto';
 import { createRPCRouter } from './ipc/router';
+import { SafeStorageSecretStore } from '../infrastructure/secrets/SafeStorageSecretStore';
+import {
+  initializeDatabase,
+  type DatabaseConnection
+} from '../infrastructure/database/connection';
+import { runMigrations } from '../infrastructure/database/migrate';
+
+let dbConnection: DatabaseConnection | null = null;
+
+export function getDatabase(): DatabaseConnection {
+  if (!dbConnection) {
+    throw new Error('Database not initialized. Call initializeDatabaseLayer() first.');
+  }
+  return dbConnection;
+}
+
+async function initializeDatabaseLayer(): Promise<DatabaseConnection> {
+  const secretStore = new SafeStorageSecretStore();
+  const secretKey = 'kali:db:master';
+
+  // Get or generate database encryption key
+  let encryptionKey: string;
+  const keyExists = await secretStore.hasSecret(secretKey);
+
+  if (!keyExists) {
+    // First-time initialization - generate new 256-bit encryption key
+    // Using cryptographically secure random bytes (32 bytes = 256 bits)
+    encryptionKey = randomBytes(32).toString('hex');
+
+    // Store key securely using OS keychain (Keychain on macOS, DPAPI on Windows, libsecret on Linux)
+    await secretStore.setSecret(secretKey, encryptionKey);
+
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log('Generated new database encryption key');
+    }
+  } else {
+    // Retrieve existing encryption key from secure storage
+    const retrievedKey = await secretStore.getSecret(secretKey);
+    if (!retrievedKey) {
+      throw new Error('Failed to retrieve database encryption key from secure storage');
+    }
+    encryptionKey = retrievedKey;
+
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log('Retrieved existing database encryption key');
+    }
+  }
+
+  const connection = initializeDatabase(encryptionKey);
+
+  await runMigrations(connection.db);
+
+  return connection;
+}
 
 /**
  * Creates the main application window with security-first configuration.
@@ -55,7 +112,7 @@ function createWindow(): void {
 }
 
 // Create window when Electron is ready
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Configure Content Security Policy headers
   // CSP restricts resource loading to prevent XSS and code injection attacks
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -90,6 +147,23 @@ app.whenReady().then(() => {
         ].join('; ')
       }
     });
+  });
+
+  // Initialize encrypted database BEFORE any other operations
+  // This must complete before window creation to ensure database is ready
+  // Order: 1) Get/generate key → 2) Initialize DB → 3) Run migrations → 4) Ready
+  try {
+    dbConnection = await initializeDatabaseLayer();
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Failed to initialize database:', error);
+    app.quit();
+    return;
+  }
+
+  app.on('before-quit', () => {
+    dbConnection?.sqlite.close();
+    dbConnection = null;
   });
 
   // Initialize IPC router for main ↔ renderer communication

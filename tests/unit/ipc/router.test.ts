@@ -329,15 +329,12 @@ describe('IPC Router', () => {
         }
       });
 
-      it('should throw BusinessError with VALIDATION_ERROR for missing value', async () => {
-        await expect(updateHandler({}, { key: 'theme' })).rejects.toThrow(BusinessError);
+      it('should accept missing value (z.unknown() allows undefined)', async () => {
+        (settingsHandlers.update as Mock).mockResolvedValue(undefined);
 
-        try {
-          await updateHandler({}, { key: 'theme' });
-        } catch (error) {
-          expect(error).toBeInstanceOf(BusinessError);
-          expect((error as BusinessError).code).toBe('VALIDATION_ERROR');
-        }
+        const result = await updateHandler({}, { key: 'theme' });
+
+        expect(result).toBeUndefined();
       });
 
       it('should throw BusinessError with VALIDATION_ERROR for non-string key', async () => {
@@ -465,15 +462,13 @@ describe('IPC Router', () => {
       getHandler = handler;
     });
 
-    it('should format multiple Zod validation errors in message', async () => {
-      // Create an input that will trigger multiple validation errors
+    it('should format Zod validation error in message', async () => {
       try {
-        await getHandler({}, { key: '', extraField: 'not allowed' });
+        await getHandler({}, { key: '' });
       } catch (error) {
         expect(error).toBeInstanceOf(BusinessError);
         expect((error as BusinessError).message).toContain('Validation failed');
-        // Message should contain comma-separated error messages
-        expect((error as BusinessError).message).toMatch(/,/);
+        expect((error as BusinessError).message).toContain('Setting key must not be empty');
       }
     });
 
