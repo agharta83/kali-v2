@@ -6,26 +6,22 @@ import { join } from 'path';
 import { randomBytes } from 'crypto';
 import { createRPCRouter } from './ipc/router';
 import { SafeStorageSecretStore } from '../infrastructure/secrets/SafeStorageSecretStore';
-import { initializeDatabase } from '../infrastructure/database/connection';
+import {
+  initializeDatabase,
+  type DatabaseConnection
+} from '../infrastructure/database/connection';
 import { runMigrations } from '../infrastructure/database/migrate';
 
-/**
- * Initialize encrypted database with key management and migrations.
- *
- * This function performs the complete database initialization sequence:
- * 1. Get or generate the database encryption key using SafeStorageSecretStore
- * 2. Initialize the encrypted SQLite database with SQLCipher
- * 3. Run all pending migrations transactionally
- *
- * The encryption key is:
- * - Generated once on first app launch using crypto.randomBytes(32)
- * - Stored securely via Electron's safeStorage API (OS keychain)
- * - Retrieved from secure storage on subsequent launches
- *
- * @throws Error if safeStorage encryption is unavailable (Linux without libsecret)
- * @throws Error if database initialization or migrations fail
- */
-async function initializeDatabaseLayer(): Promise<void> {
+let dbConnection: DatabaseConnection | null = null;
+
+export function getDatabase(): DatabaseConnection {
+  if (!dbConnection) {
+    throw new Error('Database not initialized. Call initializeDatabaseLayer() first.');
+  }
+  return dbConnection;
+}
+
+async function initializeDatabaseLayer(): Promise<DatabaseConnection> {
   const secretStore = new SafeStorageSecretStore();
   const secretKey = 'kali:db:master';
 
@@ -59,13 +55,11 @@ async function initializeDatabaseLayer(): Promise<void> {
     }
   }
 
-  // Initialize encrypted database with SQLCipher
-  // CRITICAL: cipher and key pragmas are set immediately after opening database
-  const { sqlite } = initializeDatabase(encryptionKey);
+  const connection = initializeDatabase(encryptionKey);
 
-  // Run all pending migrations transactionally
-  // Drizzle handles transaction safety - failures roll back automatically
-  await runMigrations(sqlite);
+  await runMigrations(connection.db);
+
+  return connection;
 }
 
 /**
@@ -159,15 +153,18 @@ app.whenReady().then(async () => {
   // This must complete before window creation to ensure database is ready
   // Order: 1) Get/generate key → 2) Initialize DB → 3) Run migrations → 4) Ready
   try {
-    await initializeDatabaseLayer();
+    dbConnection = await initializeDatabaseLayer();
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Failed to initialize database:', error);
-    // Exit application on database initialization failure
-    // Database is critical infrastructure - app cannot function without it
     app.quit();
     return;
   }
+
+  app.on('before-quit', () => {
+    dbConnection?.sqlite.close();
+    dbConnection = null;
+  });
 
   // Initialize IPC router for main ↔ renderer communication
   // Must be called before window creation to ensure handlers are ready

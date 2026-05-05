@@ -197,16 +197,16 @@ describe('Database Integration Tests', () => {
 
   describe('Migration Execution', () => {
     it('should run migrations successfully', async () => {
-      const { sqlite } = initializeDatabase(encryptionKey);
+      const { db, sqlite } = initializeDatabase(encryptionKey);
 
-      await expect(runMigrations(sqlite)).resolves.toBeUndefined();
+      await expect(runMigrations(db)).resolves.toBeUndefined();
 
       sqlite.close();
     });
 
     it('should create settings table after migration', async () => {
-      const { sqlite } = initializeDatabase(encryptionKey);
-      await runMigrations(sqlite);
+      const { db, sqlite } = initializeDatabase(encryptionKey);
+      await runMigrations(db);
 
       // Check if settings table exists
       const tableInfo = sqlite
@@ -222,8 +222,8 @@ describe('Database Integration Tests', () => {
     });
 
     it('should create settings table with correct schema', async () => {
-      const { sqlite } = initializeDatabase(encryptionKey);
-      await runMigrations(sqlite);
+      const { db, sqlite } = initializeDatabase(encryptionKey);
+      await runMigrations(db);
 
       // Get table schema
       const columns = sqlite.prepare('PRAGMA table_info(settings)').all() as Array<{
@@ -260,8 +260,8 @@ describe('Database Integration Tests', () => {
     });
 
     it('should create migration journal table', async () => {
-      const { sqlite } = initializeDatabase(encryptionKey);
-      await runMigrations(sqlite);
+      const { db, sqlite } = initializeDatabase(encryptionKey);
+      await runMigrations(db);
 
       // Check if __drizzle_migrations table exists
       const tableInfo = sqlite
@@ -277,8 +277,8 @@ describe('Database Integration Tests', () => {
     });
 
     it('should record migration in journal', async () => {
-      const { sqlite } = initializeDatabase(encryptionKey);
-      await runMigrations(sqlite);
+      const { db, sqlite } = initializeDatabase(encryptionKey);
+      await runMigrations(db);
 
       // Query migration journal
       const migrations = sqlite
@@ -297,10 +297,10 @@ describe('Database Integration Tests', () => {
     });
 
     it('should not run same migration twice (idempotent)', async () => {
-      const { sqlite } = initializeDatabase(encryptionKey);
+      const { db, sqlite } = initializeDatabase(encryptionKey);
 
       // Run migrations first time
-      await runMigrations(sqlite);
+      await runMigrations(db);
 
       // Get migration count
       const firstCount = sqlite
@@ -308,7 +308,7 @@ describe('Database Integration Tests', () => {
         .get() as { count: number };
 
       // Run migrations again
-      await runMigrations(sqlite);
+      await runMigrations(db);
 
       // Migration count should be the same
       const secondCount = sqlite
@@ -329,7 +329,7 @@ describe('Database Integration Tests', () => {
       const connection = initializeDatabase(encryptionKey);
       db = connection.db;
       sqlite = connection.sqlite;
-      await runMigrations(sqlite);
+      await runMigrations(db);
     });
 
     afterEach(() => {
@@ -531,7 +531,7 @@ describe('Database Integration Tests', () => {
       expect(fs.existsSync(testDbPath)).toBe(true);
 
       // 2. Run migrations
-      await runMigrations(sqlite);
+      await runMigrations(db);
 
       // 3. Verify table exists
       const tableInfo = sqlite
