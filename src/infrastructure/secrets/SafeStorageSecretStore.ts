@@ -184,19 +184,9 @@ export class SafeStorageSecretStore implements SecretStore {
    *
    * @param key - Secret key to sanitize
    * @returns Full filesystem path to the encrypted secret file
-   *
-   * @example
-   * ```typescript
-   * getSecretFilePath('kali:db:master')
-   * // => '/path/to/userData/.secrets/kali_db_master.enc'
-   * ```
    */
   private getSecretFilePath(key: string): string {
-    // Sanitize key for filesystem safety
-    // Replace any character that's not alphanumeric, hyphen, or underscore with underscore
-    const sanitized = key.replace(/[^a-zA-Z0-9-_]/g, '_');
-
-    // Return full path with .enc extension
+    const sanitized = Buffer.from(key).toString('hex');
     return path.join(this.storePath, `${sanitized}.enc`);
   }
 }

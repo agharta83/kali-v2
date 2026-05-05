@@ -30,6 +30,10 @@ vi.mock('fs', () => ({
 // Import mocked modules
 import { safeStorage, app } from 'electron';
 
+function expectedPath(storePath: string, key: string): string {
+  return path.join(storePath, `${Buffer.from(key).toString('hex')}.enc`);
+}
+
 describe('SafeStorageSecretStore', () => {
   const mockUserDataPath = '/mock/userData';
   const mockStorePath = path.join(mockUserDataPath, '.secrets');
@@ -101,7 +105,7 @@ describe('SafeStorageSecretStore', () => {
       expect(safeStorage.isEncryptionAvailable).toHaveBeenCalled();
       expect(safeStorage.encryptString).toHaveBeenCalledWith('secret-value');
       expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'test-key.enc'),
+        expectedPath(mockStorePath, 'test-key'),
         encryptedBuffer,
         { mode: 0o600 }
       );
@@ -125,7 +129,7 @@ describe('SafeStorageSecretStore', () => {
       await store.setSecret('kali:db:master', 'value');
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'kali_db_master.enc'),
+        expectedPath(mockStorePath, 'kali:db:master'),
         encryptedBuffer,
         { mode: 0o600 }
       );
@@ -138,7 +142,7 @@ describe('SafeStorageSecretStore', () => {
       await store.setSecret('existing-key', 'new-value');
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'existing-key.enc'),
+        expectedPath(mockStorePath, 'existing-key'),
         encryptedBuffer,
         { mode: 0o600 }
       );
@@ -359,7 +363,7 @@ describe('SafeStorageSecretStore', () => {
       const result = await store.hasSecret('nonexistent-key');
 
       expect(fs.existsSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'nonexistent-key.enc')
+        expectedPath(mockStorePath, 'nonexistent-key')
       );
       expect(result).toBe(false);
     });
@@ -384,7 +388,7 @@ describe('SafeStorageSecretStore', () => {
     });
   });
 
-  describe('Key Sanitization', () => {
+  describe('Key Sanitization (hex encoding)', () => {
     let store: SafeStorageSecretStore;
 
     beforeEach(() => {
@@ -394,81 +398,35 @@ describe('SafeStorageSecretStore', () => {
       (safeStorage.encryptString as Mock).mockReturnValue(Buffer.from('encrypted'));
     });
 
-    it('should replace colons with underscores', async () => {
+    it('should hex-encode the key for the filename', async () => {
       await store.setSecret('kali:db:master', 'value');
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'kali_db_master.enc'),
+        expectedPath(mockStorePath, 'kali:db:master'),
         expect.any(Buffer),
         expect.any(Object)
       );
     });
 
-    it('should replace slashes with underscores', async () => {
-      await store.setSecret('path/to/secret', 'value');
+    it('should produce distinct filenames for keys with colons vs dots vs slashes', async () => {
+      const keys = ['kali:db:master', 'kali.db.master', 'kali/db/master'];
+      const paths = new Set<string>();
 
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'path_to_secret.enc'),
-        expect.any(Buffer),
-        expect.any(Object)
-      );
+      for (const key of keys) {
+        vi.clearAllMocks();
+        (safeStorage.encryptString as Mock).mockReturnValue(Buffer.from('encrypted'));
+        await store.setSecret(key, 'value');
+        paths.add((fs.writeFileSync as Mock).mock.calls[0][0]);
+      }
+
+      expect(paths.size).toBe(keys.length);
     });
 
-    it('should replace dots with underscores', async () => {
-      await store.setSecret('config.api.key', 'value');
-
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'config_api_key.enc'),
-        expect.any(Buffer),
-        expect.any(Object)
-      );
-    });
-
-    it('should preserve alphanumeric characters', async () => {
-      await store.setSecret('Key123ABC', 'value');
-
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'Key123ABC.enc'),
-        expect.any(Buffer),
-        expect.any(Object)
-      );
-    });
-
-    it('should preserve hyphens', async () => {
-      await store.setSecret('my-secret-key', 'value');
-
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'my-secret-key.enc'),
-        expect.any(Buffer),
-        expect.any(Object)
-      );
-    });
-
-    it('should preserve underscores', async () => {
-      await store.setSecret('my_secret_key', 'value');
-
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'my_secret_key.enc'),
-        expect.any(Buffer),
-        expect.any(Object)
-      );
-    });
-
-    it('should replace spaces with underscores', async () => {
-      await store.setSecret('my secret key', 'value');
-
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'my_secret_key.enc'),
-        expect.any(Buffer),
-        expect.any(Object)
-      );
-    });
-
-    it('should replace special characters with underscores', async () => {
+    it('should handle special characters without collision', async () => {
       await store.setSecret('key!@#$%^&*()', 'value');
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'key__________.enc'),
+        expectedPath(mockStorePath, 'key!@#$%^&*()'),
         expect.any(Buffer),
         expect.any(Object)
       );
@@ -478,7 +436,7 @@ describe('SafeStorageSecretStore', () => {
       await store.setSecret('clé-日本語-🚀', 'value');
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockStorePath, 'cl_-___-__.enc'),
+        expectedPath(mockStorePath, 'clé-日本語-🚀'),
         expect.any(Buffer),
         expect.any(Object)
       );
@@ -529,7 +487,7 @@ describe('SafeStorageSecretStore', () => {
 
       expect(fs.writeFileSync).toHaveBeenCalledTimes(2);
       expect(fs.writeFileSync).toHaveBeenLastCalledWith(
-        path.join(mockStorePath, 'key.enc'),
+        expectedPath(mockStorePath, 'key'),
         secondEncrypted,
         { mode: 0o600 }
       );
