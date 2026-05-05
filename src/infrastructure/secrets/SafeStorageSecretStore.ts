@@ -6,6 +6,7 @@ import { safeStorage, app } from 'electron';
 import type { SecretStore } from '../../domain/secrets/SecretStore';
 import * as fs from 'fs';
 import * as path from 'path';
+import { TechnicalError } from '@shared/errors';
 
 /**
  * Implementation of SecretStore using Electron's safeStorage API.
@@ -73,9 +74,9 @@ export class SafeStorageSecretStore implements SecretStore {
   async setSecret(key: string, value: string): Promise<void> {
     // Verify encryption is available before proceeding
     if (!safeStorage.isEncryptionAvailable()) {
-      throw new Error(
-        'Encryption is not available on this system. ' +
-        'On Linux, ensure libsecret-1-dev is installed.'
+      throw new TechnicalError(
+        'Encryption is not available on this system. On Linux, ensure libsecret-1-dev is installed.',
+        'ENCRYPTION_UNAVAILABLE'
       );
     }
 
@@ -125,8 +126,9 @@ export class SafeStorageSecretStore implements SecretStore {
       // Decrypt using safeStorage
       return safeStorage.decryptString(encrypted);
     } catch (error) {
-      throw new Error(
-        `Failed to decrypt secret '${key}': ${error instanceof Error ? error.message : String(error)}`
+      throw new TechnicalError(
+        `Failed to decrypt secret '${key}': ${error instanceof Error ? error.message : String(error)}`,
+        'SECRET_DECRYPT_ERROR'
       );
     }
   }

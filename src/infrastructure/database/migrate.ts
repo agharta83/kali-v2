@@ -4,6 +4,7 @@
 
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
+import { TechnicalError } from '@shared/errors';
 
 /**
  * Run all pending database migrations transactionally.
@@ -41,10 +42,11 @@ export async function runMigrations(db: BetterSQLite3Database): Promise<void> {
     // eslint-disable-next-line no-console
     console.error('Migration failed:', error);
 
-    throw new Error(
+    throw new TechnicalError(
       `Database migration failed: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
+      'DB_MIGRATION_ERROR'
     );
   }
 }

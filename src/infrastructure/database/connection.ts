@@ -7,6 +7,7 @@ import { drizzle } from 'drizzle-orm/better-sqlite3';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { app } from 'electron';
 import * as path from 'path';
+import { TechnicalError } from '@shared/errors';
 
 /**
  * Result of database initialization.
@@ -105,8 +106,9 @@ export interface DatabaseConnection {
  */
 export function initializeDatabase(encryptionKey: string): DatabaseConnection {
   if (!/^[0-9a-fA-F]{64}$/.test(encryptionKey)) {
-    throw new Error(
-      'Invalid encryption key: must be 64-character hex string (32 bytes)'
+    throw new TechnicalError(
+      'Invalid encryption key: must be 64-character hex string (32 bytes)',
+      'DB_INVALID_KEY'
     );
   }
 
@@ -148,7 +150,7 @@ export function initializeDatabase(encryptionKey: string): DatabaseConnection {
           console.log('Database encryption initialized (cipher_version pragma not available, but key accepted)');
         }
       } catch {
-        throw new Error('Failed to verify encryption: cipher_version returned null and test query failed');
+        throw new TechnicalError('Failed to verify encryption: cipher_version returned null and test query failed', 'DB_ENCRYPTION_VERIFY');
       }
     }
 
@@ -162,10 +164,11 @@ export function initializeDatabase(encryptionKey: string): DatabaseConnection {
     // Close database connection on failure to prevent resource leaks
     sqlite.close();
 
-    throw new Error(
+    throw new TechnicalError(
       `Failed to initialize encrypted database: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
+      'DB_INIT_ERROR'
     );
   }
 
